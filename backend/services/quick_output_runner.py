@@ -1,14 +1,32 @@
 """CLI and MCP access to the same Studio production pipeline as the desktop application."""
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import os
+import shutil
 import time
 from pathlib import Path
 from urllib.parse import urlparse
 
 from backend import __version__
+
+
+def _move_into_place(source, target) -> None:
+    """Pindahkan file, tahan beda filesystem.
+
+    Di Codespaces /tmp dan /workspaces adalah mount berbeda: os.replace gagal
+    dengan EXDEV, dan kegagalan itu dulu mematikan seluruh status supaya video
+    yang sudah selesai terlihat gagal. Salin lalu hapus sebagai cadangan.
+    """
+    try:
+        os.replace(source, target)
+    except OSError as error:
+        if error.errno != errno.EXDEV:
+            raise
+        shutil.copy2(source, target)
+        os.unlink(source)
 
 
 class StyleDisabled(Exception):
@@ -127,7 +145,7 @@ def status(project_id: str, *, export_kits: bool = False) -> dict:
                     strategy = platform_strategy(variant['strategy_id'])
                     temporary, _ = publish_kit.kit_file(video, cover, post, strategy.label, english=strategy.audience_language == 'en')
                     try:
-                        os.replace(temporary, kit)
+                        _move_into_place(temporary, kit)
                     finally:
                         temporary.unlink(missing_ok=True)
                 row['kit_path'] = str(kit)
