@@ -48,3 +48,27 @@ SENTRY_UPLOAD_SOURCEMAPS=false npm run build
 ```
 
 官网：`node --test scripts/i18n.test.cjs`。官网仍为零构建静态页面，现有 Release 自动同步脚本继续适用。
+
+## Bahasa Indonesia (fork `isanovski/autoclip`)
+
+Terjemahan penuh untuk 9 bahasa, dengan `id` sebagai tambahan fork ini.
+
+- Berkas: `frontend/src/i18n/locales/id.json` — 2.120 key, urutan dan jumlah sama dengan `en.json`.
+- Key adalah kalimat Mandarin asli (stabil, jangan diubah). Value adalah teks Indonesia.
+- Registrasi: `frontend/src/i18n/language.ts` (`supportedLanguages`) dan `frontend/src/i18n/index.ts` (`languages`, `localeTags`, `resources`).
+- Sistem berbahasa `id-ID` otomatis memilih `id`; tag tak dikenal jatuh ke `en`.
+- 85 value sengaja identik dengan Inggris: nama merek (OpenAI, DeepSeek, Anthropic), kata serapan (Video, Model, Format, Audio, Sponsor, Playlist), nama platform (Douyin, Xiaohongshu, Bilibili), dan tanda baca. Jangan "diterjemahkan" paksa.
+- Menambah teks UI baru: tambahkan key yang sama ke `zh.json` dan `en.json` upstream, lalu isi `id.json`; key yang belum diisi otomatis tampil Inggris lewat `fallbackLng: 'en'`.
+- Variabel `{{nama}}` wajib dipertahankan persis. Untuk memeriksa paritas key, placeholder, dan sisa teks Mandarin tanpa build penuh:
+
+```bash
+cd frontend
+node --experimental-strip-types -e "
+const {readFileSync}=require('node:fs');
+const en=JSON.parse(readFileSync('src/i18n/locales/en.json','utf8'));
+const id=JSON.parse(readFileSync('src/i18n/locales/id.json','utf8'));
+const ph=s=>(String(s).match(/\{\{[^}]+\}\}/g)||[]).sort().join('|');
+console.log('key sama:',Object.keys(en).length===Object.keys(id).length);
+console.log('placeholder beda:',Object.keys(en).filter(k=>ph(en[k])!==ph(id[k])).length);
+"
+```
