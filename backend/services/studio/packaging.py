@@ -21,8 +21,12 @@ KANA = re.compile(r'[぀-ヿ]')
 
 
 def foreign_for(audience: str, text: str) -> bool:
-    """Text an English-platform viewer cannot read: any Chinese or Japanese characters."""
-    return audience == 'en' and bool(CJK.search(text or '') or KANA.search(text or ''))
+    """Text a Latin-script audience cannot read: Chinese or Japanese characters.
+
+    Berlaku untuk `en` dan `id`: penonton Indonesia juga tidak membaca hanzi,
+    jadi judul/caption Tionghoa harus ditolak sama seperti untuk `en`.
+    """
+    return audience in ('en', 'id') and bool(CJK.search(text or '') or KANA.search(text or ''))
 
 
 
@@ -52,7 +56,7 @@ def _items(value) -> list[dict]:
     # Model lists sometimes hold bare strings or come back as one object: keep only the objects.
     return [item for item in value if isinstance(item, dict)] if isinstance(value, list) else []
 LATIN = re.compile(r'[A-Za-z]')
-TITLE_LIMIT = {'zh': 12, 'en': 36}
+TITLE_LIMIT = {'zh': 12, 'en': 36, 'id': 36}
 TAG_LIMIT = 10
 MAX_TAGS = 5
 MAX_SEGMENT_LINES = 12  # translated sentences may span short ASR rows; reject only paragraph-sized lumps
@@ -430,7 +434,7 @@ def source_cues(lines: list[dict[str, Any]], audience: str) -> list[dict[str, An
 
 def _translated_rows(lines: list[dict[str, Any]], audience: str, call, *, keep_original=False,
                      protected_terms: list[str] | None = None) -> list[dict[str, Any]]:
-    language = {'zh': '简体中文', 'en': 'English'}[audience]
+    language = {'zh': '简体中文', 'en': 'English', 'id': 'Bahasa Indonesia'}[audience]
     try:
         result = call(f'把 lines 逐条翻译成{language}，口语自然，不合并、不遗漏，不添加事实。'
                       'protected_terms 中的原文专名和术语在译文中必须保留拼写，不猜测音译或改成地名。'
@@ -599,7 +603,7 @@ def _validated(result, lines, base, translate, burned, known_names, draft, avoid
             # Merged sentence segments spread word timing over 20 s+ and drift from the audio.
             cues = [{'start': l['start'], 'end': l['end'], 'text': l['text'][:600], 'original': '', 'lines': (i, i)}
                     for i, l in enumerate(lines)]
-        if burned or audience == 'en':
+        if burned or audience in ('en', 'id'):
             for cue in cues:
                 # Burned: the picture already carries a caption, never stack a third line.
                 # English: its templates show English only, so the source text is not kept either.

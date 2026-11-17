@@ -993,7 +993,7 @@ def _caption_mask(project_id, strategy_id):
     band, language = generation.get('burned_caption_band'), generation.get('burned_caption_language')
     if not (generation.get('source_has_burned_subtitles') and band and language and language != 'en'):
         return None
-    return list(band) if platform_strategy(strategy_id).audience_language == 'en' else None
+    return list(band) if platform_strategy(strategy_id).audience_language in ('en', 'id') else None
 
 
 BURNED_LANGUAGE_PROMPT = (

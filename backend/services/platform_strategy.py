@@ -6,7 +6,8 @@ describes how an already-selected moment should be packaged for a destination.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
+import os
 from typing import Literal
 
 DurationPolicy = Literal["short", "long", "adaptive"]
@@ -35,7 +36,7 @@ class PlatformStrategy:
     recommended_max_duration_sec: int | None = None
     # Automatic packaging: which template wraps the clip, and the language its audience reads.
     template: Literal["interview_zh", "podcast_en", "landscape", "none"] = "none"
-    audience_language: Literal["zh", "en"] = "zh"
+    audience_language: Literal["zh", "en", "id"] = "zh"
 
     @property
     def aspect(self) -> Literal["portrait", "landscape", "original"]:
@@ -90,12 +91,26 @@ LEGACY_PRESET_STRATEGIES = {
 }
 
 
+def _audience_language_override() -> str | None:
+    """AUTOCLIP_AUDIENCE_LANGUAGE=id|en|zh — pilih bahasa audiens tanpa mengubah preset.
+
+    Preset platform tetap menentukan rasio, gaya judul, dan layout; hanya bahasa
+    teks (judul, caption, tag) yang diganti. Tanpa env ini perilaku lama tetap.
+    """
+    value = (os.getenv("AUTOCLIP_AUDIENCE_LANGUAGE") or "").strip().lower()
+    return value if value in ("zh", "en", "id") else None
+
+
 def platform_strategy(strategy_id: str) -> PlatformStrategy:
     key = _ALIASES.get(strategy_id.strip().lower(), strategy_id.strip().lower())
     try:
-        return PLATFORM_STRATEGIES[key]
+        strategy = PLATFORM_STRATEGIES[key]
     except KeyError as error:
         raise ValueError(f"未知平台策略: {strategy_id}") from error
+    wanted = _audience_language_override()
+    if wanted and strategy.audience_language != wanted:
+        return replace(strategy, audience_language=wanted)
+    return strategy
 
 
 def normalize_platform_ids(strategy_ids: Iterable[str]) -> list[str]:
