@@ -1159,19 +1159,20 @@ def _apply_framing(project_id, value, strategy_id, video, burned, cache, portrai
 
 
 def _audience_title(value, strategy_id, post):
-    """The version's title in its audience's language: clip titles are written in Chinese."""
+    """Judul versi dalam bahasa audiensnya: judul klip ditulis dalam bahasa Mandarin."""
     from backend.services.platform_strategy import platform_strategy
-    from backend.services.studio.packaging import CJK
-    if platform_strategy(strategy_id).audience_language != 'en' or not CJK.search(value.get('title') or ''):
+    from backend.services.studio.packaging import CJK, foreign_for
+    audience = platform_strategy(strategy_id).audience_language
+    if audience not in ('en', 'id') or not CJK.search(value.get('title') or ''):
         return value
-    from backend.services.studio.packaging import foreign_for
     lines = (value.get('packaging') or {}).get('title_lines') or []
-    english = ' '.join(lines) if lines and not any(foreign_for('en', line) for line in lines) else (post or {}).get('title', '')
-    if not english or foreign_for('en', english):
-        # No English title came back: an English caption line beats the Chinese clip title.
+    title = ' '.join(lines) if lines and not any(foreign_for(audience, line) for line in lines) else (post or {}).get('title', '')
+    if not title or foreign_for(audience, title):
+        # Tidak ada judul dalam bahasa audiens: baris caption yang sudah diterjemahkan lebih baik
+        # daripada judul klip berbahasa Mandarin.
         cues = (value.get('packaging') or {}).get('cues') or []
-        english = next((cue['text'] for cue in cues if cue.get('text') and not foreign_for('en', cue['text'])), '') or 'Untitled clip'
-    return {**value, 'title': english[:120]}
+        title = next((cue['text'] for cue in cues if cue.get('text') and not foreign_for(audience, cue['text'])), '') or 'Untitled clip'
+    return {**value, 'title': title[:120]}
 
 
 def _content_key(value):

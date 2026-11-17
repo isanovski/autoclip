@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from backend.core.failure_codes import UserFacingError
 import logging
+import os
 import re
 import unicodedata
 from collections.abc import Callable
@@ -16,6 +17,15 @@ from dataclasses import dataclass
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def _audience_language(default: str) -> str:
+    """AUTOCLIP_AUDIENCE_LANGUAGE=id|en|zh mengganti bahasa metadata.
+
+    Aturan panjang/tag tiap platform tidak berubah; hanya bahasanya.
+    """
+    value = (os.getenv("AUTOCLIP_AUDIENCE_LANGUAGE") or "").strip().lower()
+    return value if value in ("zh", "en", "id") else default
 
 
 @dataclass(frozen=True)
@@ -148,7 +158,7 @@ def _unsupported_executive_role(description: str, evidence: str) -> bool:
 def fallback(title: str, platform: str) -> dict[str, Any]:
     rules = RULES.get(platform, RULES['original'])
     text = _clean(title)
-    if rules.language == 'en' and FOREIGN_FOR_EN.search(text):
+    if _audience_language(rules.language) in ('en', 'id') and FOREIGN_FOR_EN.search(text):
         text = ''  # never a Chinese title on an English platform; the user fills it in
     return {'title': _fit(text, rules.title_max), 'description': '', 'tags': []}
 
@@ -164,9 +174,10 @@ def build_posts(title: str, lines: list[str], platforms: list[str], *, source: s
         return posts
     if call is None:
         from backend.services.studio.intelligence import text_json as call
+    languages = {p: _audience_language(RULES[p].language) for p in platforms}
     payload = {'title_hint': title, 'source': source, 'lines': text, 'platforms': platforms,
-               'rules': {p: {'language': r.language, 'title_max': r.title_max, 'description_max': r.description_max,
-                             'tags': f'{r.tags[0]}-{r.tags[1]}', 'style': r.style} for p in platforms for r in [RULES[p]]}}
+               'rules': {p: {'language': languages[p], 'title_max': RULES[p].title_max, 'description_max': RULES[p].description_max,
+                             'tags': f'{RULES[p].tags[0]}-{RULES[p].tags[1]}', 'style': RULES[p].style} for p in platforms}}
     for attempt in range(2):
         try:
             result = call(PROMPT, payload)
@@ -187,7 +198,7 @@ def build_posts(title: str, lines: list[str], platforms: list[str], *, source: s
                     # Keep valid title/tags and do not retry a model just for optional copy.
                     description = ''
                 tags = _tags(item.get('tags'), rules, evidence=text if not source else None)
-                if rules.language == 'en':
+                if languages[platform] in ('en', 'id'):
                     # English platforms are English only: a Chinese title is retried, never posted.
                     if FOREIGN_FOR_EN.search(post_title):
                         mixed.append(platform)
