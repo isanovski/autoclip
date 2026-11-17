@@ -97,7 +97,7 @@ _CLASSIC_TEMPLATES = {'interview_zh', 'podcast_en'}
 _HTML_TEMPLATES = set(HTML_TEMPLATE_IDS)
 _CLASSIC_STYLES = {
     'interview_zh': ('classic', 'boxed', 'spotlight'),
-    'podcast_en': ('pop', 'boxed', 'cinematic'),
+    'podcast_en': ('pop', 'boxed', 'cinematic', 'bold', 'soft', 'stacked'),
 }
 
 
@@ -129,10 +129,12 @@ class Packaging(BaseModel):
     burned_captions: bool = False
     fallback: bool = False
     # Visual style inside the classic templates; None = the golden default (classic / pop).
-    style: Literal['classic', 'boxed', 'spotlight', 'pop', 'cinematic'] | None = None
+    style: Literal['classic', 'boxed', 'spotlight', 'pop', 'cinematic',
+                   'bold', 'soft', 'stacked'] | None = None
     # Content mood chosen by the model; it picks the palette and style (packaging.choose_look).
     mood: Literal['calm', 'serious', 'bold', 'warm', 'playful'] | None = None
-    palette: Literal['azure', 'amber', 'coral', 'mint', 'lemon', 'rose', 'lilac'] | None = None
+    palette: Literal['azure', 'amber', 'coral', 'mint', 'lemon', 'rose', 'lilac',
+                     'slate', 'sand', 'navy', 'forest', 'plum'] | None = None
     kicker: str = Field(default='', max_length=16)
     # English italic line above a magazine headline. Classic ASS ignores it.
     deck: str = Field(default='', max_length=80)

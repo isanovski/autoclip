@@ -95,11 +95,11 @@ PROMPT = (
 # Content looks: the mood decides which palettes and styles fit; a seed from the content picks
 # among them, so different clips look different while one clip looks the same on every platform.
 MOOD_LOOKS = {
-    'calm': (('azure', 'mint', 'lilac'), {'interview_zh': ('classic', 'spotlight'), 'podcast_en': ('cinematic', 'boxed')}),
-    'serious': (('azure', 'amber'), {'interview_zh': ('classic', 'boxed'), 'podcast_en': ('cinematic', 'boxed')}),
-    'bold': (('lemon', 'coral'), {'interview_zh': ('boxed', 'classic'), 'podcast_en': ('pop', 'boxed')}),
-    'warm': (('amber', 'rose'), {'interview_zh': ('spotlight', 'classic'), 'podcast_en': ('boxed', 'cinematic')}),
-    'playful': (('rose', 'lemon', 'mint'), {'interview_zh': ('boxed', 'spotlight'), 'podcast_en': ('pop', 'boxed')}),
+    'calm': (('azure', 'mint', 'lilac', 'slate', 'navy'), {'interview_zh': ('classic', 'spotlight'), 'podcast_en': ('cinematic', 'soft')}),
+    'serious': (('azure', 'amber', 'slate', 'sand'), {'interview_zh': ('classic', 'boxed'), 'podcast_en': ('cinematic', 'boxed', 'stacked')}),
+    'bold': (('lemon', 'coral', 'sand'), {'interview_zh': ('boxed', 'classic'), 'podcast_en': ('pop', 'bold')}),
+    'warm': (('amber', 'rose', 'plum'), {'interview_zh': ('spotlight', 'classic'), 'podcast_en': ('boxed', 'soft')}),
+    'playful': (('rose', 'lemon', 'mint', 'forest'), {'interview_zh': ('boxed', 'spotlight'), 'podcast_en': ('pop', 'bold')}),
 }
 
 

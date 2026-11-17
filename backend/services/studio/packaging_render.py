@@ -27,6 +27,9 @@ PALETTES = {
     'azure': ('5A8BFF', '1A1A19'), 'amber': ('F2B544', '1B1712'), 'coral': ('FF6F59', '1B1514'),
     'mint': ('46D3A6', '111917'), 'lemon': ('F4DC3C', '141413'), 'rose': ('FF7FA9', '1B1418'),
     'lilac': ('B69CFF', '17151C'),
+    'slate': ('7C8DA6', '14171B'), 'sand': ('D8B26A', '1A1712'),
+    'navy': ('4E6BD8', '12151F'), 'forest': ('4FA97A', '12170F'),
+    'plum': ('9E6BD6', '171225'),
 }
 
 
@@ -233,6 +236,14 @@ def scene_ass(packaging: Packaging, scenes: list[Scene], index: int, word_timing
                     add_caption(1, s, e, 'Original', f'{{\\an8\\pos(540,{WIN_Y + WIN_H + 34})\\fad(60,60)}}{_esc_lines(original)}')
             continue
         highlights = {h.text.lower() for h in packaging.highlights if cue.start <= h.at < cue.end}
+        simple_looks = {'bold': ('Caption', 72, 1370, 70),
+                        'soft': ('Caption', 56, 1450, 180),
+                        'stacked': ('Caption', 50, 1400, 90)}
+        if style in simple_looks:
+            caption_style, size, y, fade = simple_looks[style]
+            for s_, e_, text, _ in timed_screens(spoken, start, end, _limit(size) / 0.95):
+                add_caption(2, s_, e_, caption_style, f'{{\\an2\\pos(540,{y})\\fad({fade},{fade})}}{text}')
+            continue
         if style == 'boxed' or packaging.audience_language == 'zh':
             caption_style, size = {'boxed': ('CaptionBox', 58), 'cinematic': ('Cine', 64)}.get(style, ('Words', 82))
             for s, e, text, _ in timed_screens(spoken, start, end, _limit(size) / 0.95):

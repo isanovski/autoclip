@@ -33,7 +33,7 @@ _cache_lock = threading.Lock()
 
 class BrandingSettings(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    enabled: StrictBool = True
+    enabled: StrictBool = False  # outro/watermark akhir dimatikan secara default
 
 
 def settings_path() -> Path:
