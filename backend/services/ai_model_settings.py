@@ -229,7 +229,7 @@ class Assignment(BaseModel):
 
 class Transcription(BaseModel):
     provider: Literal['whisper_local', 'sensevoice_local', 'cloud'] = 'whisper_local'
-    model: str = Field(default='base', min_length=1, max_length=200)
+    model: str = Field(default='large-v3', min_length=1, max_length=200)
     connection_id: str | None = None
     model_source: Source = 'user'
 

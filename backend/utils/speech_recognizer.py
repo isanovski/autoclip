@@ -69,7 +69,7 @@ class SpeechRecognitionConfig:
     """语音识别配置"""
     method: SpeechRecognitionMethod = SpeechRecognitionMethod.WHISPER_LOCAL
     language: LanguageCode = LanguageCode.AUTO
-    model: str = "base"  # Whisper模型大小
+    model: str = "large-v3"  # Whisper模型大小
     timeout: int = 0  # 秒。0：本地 Whisper 按音长封顶（local_whisper_budget_seconds）；其它识别路径不额外限制
     output_format: str = "srt"  # 输出格式
     enable_timestamps: bool = True  # 是否启用时间戳
@@ -1071,7 +1071,7 @@ def _stash_speech_api_key(config: SpeechRecognitionConfig, api_key: str) -> None
         config.custom_api_key = api_key
 
 
-def configured_whisper_model(fallback: str = 'base') -> str:
+def configured_whisper_model(fallback: str = 'large-v3') -> str:
     from backend.services.ai_model_settings import load
     settings = load()
     return settings.transcription.model if settings and settings.transcription and settings.transcription.provider == 'whisper_local' else fallback

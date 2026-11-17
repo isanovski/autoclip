@@ -26,7 +26,7 @@ class DesktopPaths:
 
 @dataclass
 class WhisperConfig:
-    model_name: str = "base"
+    model_name: str = "large-v3"
     language: str = "auto"
     custom_models_dir: str = ""
     enable_timestamps: bool = True

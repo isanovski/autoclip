@@ -1129,7 +1129,9 @@ def _apply_framing(project_id, value, strategy_id, video, burned, cache, portrai
     if strategy.aspect != 'portrait':
         return value, None
     interview = strategy.template == 'interview_zh'
-    fallback_layout = 'window' if interview else 'blur'
+    # Preset portrait (YouTube Shorts dll) berarti frame harus penuh 9:16.
+    # Tanpa track wajah, crop tengah lebih benar daripada bingkai blur di atas-bawah.
+    fallback_layout = 'crop' if portrait_crop else ('window' if interview else 'blur')
     if burned and _caption_mask(project_id, strategy_id):
         burned = False  # the band is blurred out, so cropping cannot cut captions anyone reads
     if burned and _forced_portrait_layout() != 'crop':

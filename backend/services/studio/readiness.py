@@ -101,7 +101,7 @@ def _transcription(settings: ai_models.ModelSettings) -> dict:
     choice = settings.transcription or ai_models.Transcription()
     if choice.provider == 'whisper_local':
         from backend.services import whisper_runtime
-        model = choice.model or 'base'
+        model = choice.model or 'large-v3'
         label = f'本地 {model}'
         status = whisper_runtime.get_status().get('status')
         if status == 'installed':
