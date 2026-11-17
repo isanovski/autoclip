@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import shutil
 from time import monotonic, sleep
 from backend.core.failure_codes import UserFacingError, sentence, user_visible_error
@@ -732,6 +733,17 @@ def _snapshotted_captions(generation) -> bool:
     return bool(generation['output_captions'])
 
 
+def _forced_portrait_layout():
+    """Override manual untuk output vertikal: crop / fit / blur.
+
+    Dipakai lewat env AUTOCLIP_PORTRAIT_LAYOUT. Menimpa deteksi subtitle nempel
+    (yang biasanya memaksa blur agar baris asli tidak terpotong) dan pilihan
+    preset platform. Tanpa env ini, perilaku lama tidak berubah.
+    """
+    value = (os.getenv("AUTOCLIP_PORTRAIT_LAYOUT") or "").strip().lower()
+    return value if value in ("crop", "fit", "blur") else None
+
+
 def _apply_strategy(draft, strategy_id, *, burned_subtitles=False, layout=None, output_captions=True):
     """Materialize platform packaging defaults without reinterpreting content.
 
@@ -745,7 +757,10 @@ def _apply_strategy(draft, strategy_id, *, burned_subtitles=False, layout=None, 
     layout = layout or (strategy.layout if strategy.layout != 'none' else value.get('layout', 'fit'))
     if value.get('caption_mask'):
         burned_subtitles = False  # blurred out: our own captions and framing apply
-    if burned_subtitles and strategy.aspect == 'portrait' and layout == 'crop':
+    forced_layout = _forced_portrait_layout()
+    if forced_layout and strategy.aspect == 'portrait':
+        layout = forced_layout
+    elif burned_subtitles and strategy.aspect == 'portrait' and layout == 'crop':
         layout = 'blur'
     value.update(
         aspect=strategy.aspect,
@@ -1117,7 +1132,7 @@ def _apply_framing(project_id, value, strategy_id, video, burned, cache, portrai
     fallback_layout = 'window' if interview else 'blur'
     if burned and _caption_mask(project_id, strategy_id):
         burned = False  # the band is blurred out, so cropping cannot cut captions anyone reads
-    if burned:
+    if burned and _forced_portrait_layout() != 'crop':
         plain = [{**scene, 'crop_x': None, 'crop_track': None, 'framing_source': None, 'framing_adjusted': False} for scene in value['scenes']]
         return {**value, 'scenes': plain, 'layout': fallback_layout}, 'full_frame_captions'
     window = None if portrait_crop else (INTERVIEW_WINDOW if interview else None)

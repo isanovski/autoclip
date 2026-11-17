@@ -20,6 +20,7 @@ BRIGHT, DARK, REACH = 200, 80, 2
 MIN_TEXT_FRACTION = 0.0012     # share of band pixels that look like glyphs on a darker edge
 MIN_FRAMES_WITH_TEXT = 0.6     # most samples must carry text
 MAX_MEDIAN_OVERLAP = 0.5       # text must change between samples (logos do not)
+MAX_ROW_SPAN = 0.45            # captions sit on a few rows; busy scenes spread over the band
 EDGE = 0.15                    # captions are centred; corner logos and watermarks live in the outer 15 %
 
 
@@ -50,12 +51,23 @@ def text_mask(pixels: bytes) -> set[int]:
     return mask
 
 
+def _row_span(mask: set[int]) -> int:
+    """Berapa baris yang ditempati mask. Subtitle = beberapa baris; adegan ramai = seband."""
+    rows = [index // BAND_WIDTH for index in mask]
+    return (max(rows) - min(rows) + 1) if rows else 0
+
+
 def decide(masks: list[set[int]]) -> bool:
     if not masks:
         return False
     threshold = MIN_TEXT_FRACTION * BAND_WIDTH * BAND_HEIGHT
     texty = [mask for mask in masks if len(mask) >= threshold]
     if len(texty) < MIN_FRAMES_WITH_TEXT * len(masks) or len(texty) < 3:
+        return False
+    # Subtitle menempati beberapa baris saja di dekat bawah. Kalau piksel "teks"
+    # menyebar hampir sepanjang band, itu tekstur gambar (baju, latar, objek),
+    # bukan subtitle — penyebab utama deteksi palsu.
+    if statistics.median(_row_span(mask) for mask in texty) > MAX_ROW_SPAN * BAND_HEIGHT:
         return False
     overlaps = [len(a & b) / max(1, len(a | b)) for a, b in pairwise(texty)]
     return statistics.median(overlaps) < MAX_MEDIAN_OVERLAP
