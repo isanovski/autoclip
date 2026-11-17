@@ -1150,7 +1150,10 @@ def _apply_framing(project_id, value, strategy_id, video, burned, cache, portrai
     if scenes is None:
         # Drop tracks inherited from another platform's framing: they were computed for a different window.
         plain = [{**scene, 'crop_x': None, 'crop_track': None, 'framing_source': None, 'framing_adjusted': False} for scene in value['scenes']]
-        return {**value, 'scenes': plain, 'layout': fallback_layout}, framing
+        # Tanpa track wajah, bawaan AutoClip kembali ke blur. Kalau user minta crop
+        # eksplisit, tetap crop (tengah) supaya hasilnya penuh 9:16, bukan berbingkai.
+        fallback = 'crop' if _forced_portrait_layout() == 'crop' else fallback_layout
+        return {**value, 'scenes': plain, 'layout': fallback}, framing
     layout = 'crop' if portrait_crop or not interview else 'window'
     return {**value, 'scenes': scenes, 'layout': layout}, framing
 
