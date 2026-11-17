@@ -8,6 +8,7 @@ import es from './locales/es.json'
 import pt from './locales/pt.json'
 import ru from './locales/ru.json'
 import fr from './locales/fr.json'
+import id from './locales/id.json'
 import { resolveLanguage, readPreference, LANGUAGE_STORAGE_KEY, type LanguagePreference } from './language'
 
 export const languages = [
@@ -15,15 +16,16 @@ export const languages = [
   { value: 'ja', label: '日本語' }, { value: 'ko', label: '한국어' },
   { value: 'es', label: 'Español' }, { value: 'pt', label: 'Português (Brasil)' },
   { value: 'ru', label: 'Русский' }, { value: 'fr', label: 'Français' },
+  { value: 'id', label: 'Bahasa Indonesia' },
 ] as const
 
-export const localeTags = { zh: 'zh-CN', en: 'en', ja: 'ja', ko: 'ko', es: 'es', pt: 'pt-BR', ru: 'ru', fr: 'fr' } as const
+export const localeTags = { zh: 'zh-CN', en: 'en', ja: 'ja', ko: 'ko', es: 'es', pt: 'pt-BR', ru: 'ru', fr: 'fr', id: 'id' } as const
 export { readPreference } from './language'
 
 let currentPreference: LanguagePreference = readPreference()
 
 void i18n.use(initReactI18next).init({
-  resources: { zh: { translation: zh }, en: { translation: en }, ja: { translation: ja }, ko: { translation: ko }, es: { translation: es }, pt: { translation: pt }, ru: { translation: ru }, fr: { translation: fr } },
+  resources: { zh: { translation: zh }, en: { translation: en }, ja: { translation: ja }, ko: { translation: ko }, es: { translation: es }, pt: { translation: pt }, ru: { translation: ru }, fr: { translation: fr }, id: { translation: id } },
   lng: resolveLanguage(currentPreference, navigator.languages),
   fallbackLng: 'en',
   supportedLngs: languages.map(l => l.value),
